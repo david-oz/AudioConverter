@@ -7,17 +7,7 @@ const bodyParser = require('body-parser');
 const app = express();
 const fileUpload = require('express-fileupload')
 const { promisify } = require('util');
-
-
-let runConversion = async () => {
-    let ffmpeg = new FFMpeg();
-    try {
-        let res = await ffmpeg.start(path.join(__dirname + '/input'), path.join(__dirname, '/output'));
-        console.log(res);
-    } catch (ex) {
-        console.log(ex);
-    }
-};
+const fs = require('fs');
 
 app.use(fileUpload())
 
@@ -31,7 +21,7 @@ app.get('/', (req, res) => {
 
 app.post('/uploadFile', async function (req, res) {
     if (!req.files) {
-        return res.status(400).send('No files were uploaded.')
+        return res.status(400).send('לא נבחרו קבצים')
     }
 
     let file = req.files.myFile
@@ -39,6 +29,9 @@ app.post('/uploadFile', async function (req, res) {
     let fileType;
 
     let extractor = new Extractor();
+    let ffmpeg = new FFMpeg();
+    let copiedFilePath;
+    let extractionOutPath;
 
     try {
         fileType = path.extname(file.name);
@@ -48,17 +41,46 @@ app.post('/uploadFile', async function (req, res) {
         let fileNoExt = file.name.split('.')[0];
         let ts = Math.ceil(new Date().getTime() / 1000);
         let fileName = `${fileNoExt}_${ts}${fileType}`;
-        let copiedFilePath = path.join(__dirname, '/uploadedFiles/', fileName);
-        let outPath = path.join(__dirname, '/uploadedFiles/',`${fileNoExt}_${ts}`);
+        copiedFilePath = path.join(__dirname, '/uploadedFiles/', fileName);
+        extractionOutPath = path.join(__dirname, '/uploadedFiles/', `${fileNoExt}_${ts}`);
+        let conversionOutPath = path.join(desktopPath, `${fileNoExt}_${ts}`);
         await mvAsync(copiedFilePath);
-        await extractor.extract(copiedFilePath, outPath);
+        await extractor.extract(copiedFilePath, extractionOutPath);
+        if (!fs.existsSync(conversionOutPath)) {
+            fs.mkdirSync(conversionOutPath);
+        } else {
+            console.log(`${conversionOutPath} path already exists`);
+        }
+        await ffmpeg.convert(extractionOutPath, conversionOutPath);
     } catch (ex) {
         console.log(ex);
-        return res.send(500);
+        return res.redirect('/error.html');
+    } finally {
+        try {
+            fs.unlinkSync(copiedFilePath);
+            //fs.unlinkSync(extractionOutPath);
+            deleteFolderRecursive(extractionOutPath);
+        } catch (ex) {
+            console.log(ex);
+            return res.redirect('/error.html');
+        }
     }
     res.redirect('/uploadSuccessPage.html')
 })
 
+let deleteFolderRecursive = function(path) {
+    if( fs.existsSync(path) ) {
+      fs.readdirSync(path).forEach(function(file,index){
+        var curPath = path + "/" + file;
+        if(fs.lstatSync(curPath).isDirectory()) { // recurse
+          deleteFolderRecursive(curPath);
+        } else { // delete file
+          fs.unlinkSync(curPath);
+        }
+      });
+      fs.rmdirSync(path);
+    }
+  };
 
 app.listen(4000, () => {
     console.log('listening...');
