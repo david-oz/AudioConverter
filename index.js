@@ -35,7 +35,7 @@ app.post('/uploadFile', async function (req, res) {
 
     try {
         fileType = path.extname(file.name);
-        if (fileType !== '.zip') {
+        if (fileType !== '.zip' && fileType !== '.rar') {
             throw Error(`Unsupported file type: ${fileType}`)
         }
         let fileNoExt = file.name.split('.')[0];
@@ -58,7 +58,6 @@ app.post('/uploadFile', async function (req, res) {
     } finally {
         try {
             fs.unlinkSync(copiedFilePath);
-            //fs.unlinkSync(extractionOutPath);
             deleteFolderRecursive(extractionOutPath);
         } catch (ex) {
             console.log(ex);
