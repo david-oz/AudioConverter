@@ -46,11 +46,11 @@ app.post('/uploadFile', async function (req, res) {
         let conversionOutPath = path.join(desktopPath, `${fileNoExt}_${ts}`);
         await mvAsync(copiedFilePath);
         await extractor.extract(copiedFilePath, extractionOutPath);
-        if (!fs.existsSync(conversionOutPath)) {
-            fs.mkdirSync(conversionOutPath);
-        } else {
-            console.log(`${conversionOutPath} path already exists`);
-        }
+        // if (!fs.existsSync(conversionOutPath)) {
+        //     fs.mkdirSync(conversionOutPath);
+        // } else {
+        //     console.log(`${conversionOutPath} path already exists`);
+        // }
         await ffmpeg.convert(extractionOutPath, conversionOutPath);
     } catch (ex) {
         console.log(ex);
@@ -68,7 +68,7 @@ app.post('/uploadFile', async function (req, res) {
 })
 
 let deleteFolderRecursive = function(path) {
-    if( fs.existsSync(path) ) {
+    if(fs.existsSync(path) ) {
       fs.readdirSync(path).forEach(function(file,index){
         var curPath = path + "/" + file;
         if(fs.lstatSync(curPath).isDirectory()) { // recurse
