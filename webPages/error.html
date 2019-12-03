@@ -3,6 +3,12 @@
 <body>
     <div style="margin-top: 350px; margin-left: 700px;">
         <h1>אירעה שגיאה, נסו שנית</h1>
+        <button onclick="redirectHome()">חזור לדף הקודם</button>
+        <script>
+            function redirectHome() {
+                location.replace(window.location.origin)
+            }
+        </script>
     </div>
 </body>
 
