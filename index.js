@@ -1,5 +1,5 @@
 const FFMpeg = require('./lib/ffmpeg_wrapper');
-const Extractor = require('./lib/extractor');
+const SevenZWrapper = require('./lib/7z_wrapper')
 const path = require('path');
 const desktopPath = path.join(process.env['USERPROFILE'], '/Desktop');
 const express = require('express');
@@ -28,7 +28,7 @@ app.post('/uploadFile', async function (req, res) {
     let mvAsync = promisify(file.mv);
     let fileType;
 
-    let extractor = new Extractor();
+    let sevenZip = new SevenZWrapper();
     let ffmpeg = new FFMpeg();
     let copiedFilePath;
     let extractionOutPath;
@@ -45,12 +45,7 @@ app.post('/uploadFile', async function (req, res) {
         extractionOutPath = path.join(__dirname, '/uploadedFiles/', `${fileNoExt}_${ts}`);
         let conversionOutPath = path.join(desktopPath, `${fileNoExt}_${ts}`);
         await mvAsync(copiedFilePath);
-        await extractor.extract(copiedFilePath, extractionOutPath);
-        // if (!fs.existsSync(conversionOutPath)) {
-        //     fs.mkdirSync(conversionOutPath);
-        // } else {
-        //     console.log(`${conversionOutPath} path already exists`);
-        // }
+        await sevenZip.extract(copiedFilePath, extractionOutPath);
         await ffmpeg.convert(extractionOutPath, conversionOutPath);
     } catch (ex) {
         console.log(ex);
