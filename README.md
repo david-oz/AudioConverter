@@ -3,4 +3,4 @@
 - install 7z
 - edit SEVEN_ZIP_PATH
 - npm i
-- create shortcut
+- create launch.bat shortcut 
