@@ -38,6 +38,10 @@ app.post('/uploadFile', async function (req, res) {
         if (fileType !== '.zip' && fileType !== '.rar') {
             throw Error(`Unsupported file type: ${fileType}`)
         }
+        let uploadedFilesFolderPath = path.join(__dirname, '/uploadedFiles');
+        if (!fs.existsSync(uploadedFilesFolderPath)) {
+            fs.mkdirSync(uploadedFilesFolderPath);
+        }
         let fileNoExt = file.name.split('.')[0];
         let ts = Math.ceil(new Date().getTime() / 1000);
         let fileName = `${fileNoExt}_${ts}${fileType}`;
@@ -62,19 +66,19 @@ app.post('/uploadFile', async function (req, res) {
     res.redirect('/uploadSuccessPage.html')
 })
 
-let deleteFolderRecursive = function(path) {
-    if(fs.existsSync(path) ) {
-      fs.readdirSync(path).forEach(function(file,index){
-        var curPath = path + "/" + file;
-        if(fs.lstatSync(curPath).isDirectory()) { // recurse
-          deleteFolderRecursive(curPath);
-        } else { // delete file
-          fs.unlinkSync(curPath);
-        }
-      });
-      fs.rmdirSync(path);
+let deleteFolderRecursive = function (path) {
+    if (fs.existsSync(path)) {
+        fs.readdirSync(path).forEach(function (file, index) {
+            var curPath = path + "/" + file;
+            if (fs.lstatSync(curPath).isDirectory()) { // recurse
+                deleteFolderRecursive(curPath);
+            } else { // delete file
+                fs.unlinkSync(curPath);
+            }
+        });
+        fs.rmdirSync(path);
     }
-  };
+};
 
 app.listen(3000, () => {
     console.log('listening...');
